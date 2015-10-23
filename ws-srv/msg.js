@@ -12,4 +12,6 @@ Msg.prototype.prep = function() {
 	});
 };
 
-module.exports = Msg;
+if (typeof module !== 'undefined') {
+	module.exports = Msg;
+}

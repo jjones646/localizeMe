@@ -28,53 +28,57 @@ ws.on("connection", function(id) {
 
 	// broadcast to all
 	id.on("message", function(data, flags) {
-		msg = JSON.parse(data);
-		if (msg.realm == listeningRealm) {
-			// create an empty response message initially
-			var res = new Msg('', listeningRealm, '');
-			var broadcastNeeded = false;
+		try {
+			msg = JSON.parse(data);
+			if (msg.realm == listeningRealm) {
+				// create an empty response message initially
+				var res = new Msg('', listeningRealm, '');
+				var broadcastNeeded = false;
 
-			// handle the corresponding event
-			switch (msg.proto) {
-				case "submit_cords":
-					var info = msg.data;
-					// we copy the receive coordinate info so we can send it to everyone in our realm
-					res.data = info;
-					res.proto = 'add_user_cords';
-					broadcastNeeded = true;
-					console.log("Received submission: %dx%d (set %d).", info.cords.x, info.cords.y, info.set);
-					break;
+				// handle the corresponding event
+				switch (msg.proto) {
+					case "submit_cords":
+						var info = msg.data;
+						// we copy the receive coordinate info so we can send it to everyone in our realm
+						res.data = info;
+						res.proto = 'add_user_cords';
+						broadcastNeeded = true;
+						console.log("Received submission: %dx%d (set %d).", info.cords.x, info.cords.y, info.set);
+						break;
 
-				case "add_user_cords":
-					broadcastNeeded = true;
-					console.log("Sending new point to connected users.");
-					break;
+					case "add_user_cords":
+						broadcastNeeded = true;
+						console.log("Sending new point to connected users.");
+						break;
 
-				case "renew_num_clients":
-					broadcastNeeded = false;
-					console.log("Received invalid packet destined for clients.");
-					break;
+					case "renew_num_clients":
+						broadcastNeeded = false;
+						console.log("Received invalid packet destined for clients.");
+						break;
 
-				default:
-					broadcastNeeded = false;
-					console.log("Received unknown protocol message.");
-					break;
-			}
+					default:
+						broadcastNeeded = false;
+						console.log("Received unknown protocol message.");
+						break;
+				}
 
-			// broadcast out the message if needed
-			if (broadcastNeeded) {
-				var myId = connList.indexOf(id);
-				for (var i = 0; i < connList.length; ++i) {
-					if (i != myId) {
-						connList[i].send(res.prep(), function ack(err) {
-							if (typeof err !== 'undefined') {
-								// something went wrong
-								console.log("ERROR SENDING BROADCAST MESSAGE TO:\n" + connList[i]);
-							}
-						});
+				// broadcast out the message if needed
+				if (broadcastNeeded) {
+					var myId = connList.indexOf(id);
+					for (var i = 0; i < connList.length; ++i) {
+						if (i != myId) {
+							connList[i].send(res.prep(), function ack(err) {
+								if (typeof err !== 'undefined') {
+									// something went wrong
+									console.log("ERROR SENDING BROADCAST MESSAGE TO:\n" + connList[i]);
+								}
+							});
+						}
 					}
 				}
 			}
+		} catch (err) {
+			console.log(err);
 		}
 	});
 

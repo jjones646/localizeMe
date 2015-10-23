@@ -1,86 +1,119 @@
-function pointIt(event) {
-  pos_x = event.offsetX ? (event.offsetX) : event.pageX - document.getElementById("pointer-div").offsetLeft;
-  pos_y = event.offsetY ? (event.offsetY) : event.pageY - document.getElementById("pointer-div").offsetTop;
-  var mrkElem = document.getElementById("marker");
-  var offsetVal = mrkElem.offsetWidth / 2;
-  mrkElem = mrkElem.style;
-  mrkElem.left = (pos_x - offsetVal);
-  mrkElem.top = (pos_y - offsetVal);
-  mrkElem.visibility = "visible";
-  document.pointform.form_x.value = pos_x;
-  document.pointform.form_y.value = pos_y;
-}
+if (document.readyState === "complete") {
 
-// Send text to all users through the server
-function sendCords(ws) {
-  var msg = {
-    proto: "submit_cords",
-    realm: "robotics",
-    data: {
-      cords: {
-        x: document.getElementById("form_x").value,
-        y: document.getElementById("form_y").value
-      },
-      set: 2
-    }
-  };
-
-  // Send the msg object as a JSON-formatted string.
-  ws.send(JSON.stringify(msg));
-  console.log(msg);
-}
-
-// $(document).ready(function() {
-
-function
-var webSock = new WebSocket("ws://localhost:5000", ["protocolOne", "protocolTwo"]);
-
-webSock.onopen = function(event) {
-  // webSock.send("Here's some text that the server is urgently awaiting!");
-  console.log(event.data);
-};
-
-webSock.onmessage = function(event) {
-
-  msg = JSON.parse(data);
-  if (msg.realm == listeningRealm) {
-    // create an empty response message initially
-    var res = new Msg('', listeningRealm, '');
-    var broadcastNeeded = false;
-
-    // handle the corresponding event
-    switch (msg.proto) {
-      case "submit_cords":
-        var info = msg.data;
-        // we copy the receive coordinate info so we can send it to everyone in our realm
-        res.data = info;
-        res.proto = 'add_user_cords';
-        broadcastNeeded = true;
-        console.log("Received submission: %dx%d (set %d).", info.cords.x, info.cords.y, info.set);
-        break;
-
-      case "add_user_cords":
-        broadcastNeeded = true;
-        console.log("Sending new point to connected users.");
-        break;
-
-      case "renew_num_clients":
-        broadcastNeeded = false;
-        console.log("Received invalid packet destined for clients.");
-        break;
-
-      default:
-        broadcastNeeded = false;
-        console.log("Received unknown protocol message.");
-        break;
-    }
+  function pointIt(event) {
+    pos_x = event.offsetX ? (event.offsetX) : event.pageX - document.getElementById("pointer-div").offsetLeft;
+    pos_y = event.offsetY ? (event.offsetY) : event.pageY - document.getElementById("pointer-div").offsetTop;
+    var mrkElem = document.getElementById("marker");
+    var offsetVal = mrkElem.offsetWidth / 2;
+    mrkElem = mrkElem.style;
+    mrkElem.left = (pos_x - offsetVal);
+    mrkElem.top = (pos_y - offsetVal);
+    mrkElem.visibility = "visible";
+    document.pointform.form_x.value = pos_x;
+    document.pointform.form_y.value = pos_y;
   }
 
-  console.log(event.data);
+  // send the selected coordinate data to the server using websockets
+  function sendCords() {
+    var cord_x = document.getElementById("form_x").value;
+    var cord_y = document.getElementById("form_y").value;
+    var image_set = 1;
+
+    console.log(cord_x, cord_y);
+    // make sure we have valid coordinates to send
+    if (cord_x != null && cord_y != null) {
+      // check to see if the websocket object exists
+      if (webSock) {
+        // create our data object to send
+        var data = {
+          cords: {
+            x: cord_x,
+            y: cord_y
+          },
+          set: image_set
+        };
+        // construct a message object, placing the data as the payload
+        var msg = new Msg('submit_cords', commRealm, data);
+        // Send the msg object as a JSON-formatted string.
+        webSock.send(JSON.stringify(msg));
+        console.log(msg);
+      } else {
+        console.log("No socket connection");
+      }
+    } else {
+      console.log("No coordinates set");
+    }
+  }
+  window.onload = sendCords();
+
+  window.onload = function() {
+    if (!window.WebSocket) {
+      //If the user's browser does not support WebSockets, give an alert message
+      alert("Your browser does not support the WebSocket API!");
+    } else {
+      // setup the websocket connection
+      var wsurl = "ws://localhost:5000";
+      //get status element
+      var connstatus = document.getElementById("connectionstatus");
+      // the default realm for our protocol
+      var commRealm = 'robotics';
+      // create the websocket object
+      var webSock = new WebSocket(wsurl, ["protocolOne", "protocolTwo"]);
+
+      webSock.onopen = function(event) {
+        // webSock.send("Here's some text that the server is urgently awaiting!");
+        console.log(event);
+      };
+
+      webSock.onmessage = function(event) {
+        // parse the packet
+        msg = JSON.parse(data);
+        if (msg.realm == listeningRealm) {
+          // create an empty response message initially
+          var res = new Msg('', listeningRealm, '');
+          var replyNeeded = false;
+
+          // handle the corresponding event
+          switch (msg.proto) {
+            case "submit_cords":
+              var info = msg.data;
+              // we copy the receive coordinate info so we can send it to everyone in our realm
+              res.data = info;
+              res.proto = 'add_user_cords';
+              replyNeeded = false;
+              console.log("Received submission: %dx%d (set %d).", info.cords.x, info.cords.y, info.set);
+              break;
+
+            case "add_user_cords":
+              replyNeeded = false;
+              console.log("Sending new point to connected users.");
+              break;
+
+            case "renew_num_clients":
+              replyNeeded = false;
+              console.log("Received invalid packet destined for clients.");
+              break;
+
+            default:
+              replyNeeded = false;
+              console.log("Received unknown protocol message.");
+              break;
+          }
+
+          if (replyNeeded) {
+            // send a reply if we need to by the protocol standards that we defined
+          }
+        }
+        console.log(event.data);
+      };
+
+      // used to close the connection
+      function closeConnection() {
+        //check to ensure that the socket variable is present i.e. the browser support tests passed
+        if (webSock) {
+          webSock.close();
+        }
+      }
+    }
+  }
 }
-
-// webSock.close();
-
-document.getElementById("submit-btn").onclick = sendCords(webSock);
-
-// });
