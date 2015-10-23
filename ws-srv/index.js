@@ -26,6 +26,11 @@ ws.on("connection", function(id) {
 	connList.push(id);
 	console.log("User with ID of " + id + " has connected [%d current connections].", connList.length);
 
+	var clientUpd = new Msg('renew_num_clients', connList.length, listeningRealm);
+	for (var i = 0; i < connList.length; ++i) {
+		id.send(clientUpd.prep(), function() {});
+	}
+
 	// broadcast to all
 	id.on("message", function(data, flags) {
 		try {
@@ -52,13 +57,13 @@ ws.on("connection", function(id) {
 						break;
 
 					case "renew_num_clients":
-						broadcastNeeded = false;
+
 						console.log("Received invalid packet destined for clients.");
 						break;
 
 					default:
-						broadcastNeeded = false;
 						console.log("Received unknown protocol message.");
+						console.log(err);
 						break;
 				}
 

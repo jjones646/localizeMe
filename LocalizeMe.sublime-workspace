@@ -4,6 +4,22 @@
 		"selected_items":
 		[
 			[
+				"subm",
+				"submitBtn"
+			],
+			[
+				"visi",
+				"visibility"
+			],
+			[
+				"str",
+				"stringify"
+			],
+			[
+				"cord",
+				"cord_y"
+			],
+			[
 				"list",
 				"listeningRealm"
 			],
@@ -63,6 +79,30 @@
 	},
 	"buffers":
 	[
+		{
+			"file": "client/scripts.js",
+			"settings":
+			{
+				"buffer_size": 5387,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "ws-srv/index.js",
+			"settings":
+			{
+				"buffer_size": 2761,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "client/index.html",
+			"settings":
+			{
+				"buffer_size": 850,
+				"line_ending": "Unix"
+			}
+		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -114,9 +154,15 @@
 	},
 	"expanded_folders":
 	[
+		"/home/jonathan/Documents/LocalizeMe",
+		"/home/jonathan/Documents/LocalizeMe/ws-srv"
 	],
 	"file_history":
 	[
+		"/home/jonathan/Documents/LocalizeMe/client/gt-aerial.jpg",
+		"/home/jonathan/Documents/LocalizeMe/ws-srv/index.js",
+		"/home/jonathan/Documents/LocalizeMe/app-ex.js",
+		"/home/jonathan/Documents/LocalizeMe/ws-srv/msg.js",
 		"/home/jonathan/Desktop/localization/scripts.js",
 		"/home/jonathan/Desktop/localization/index.html",
 		"/home/jonathan/Documents/node-ws-test/index.js",
@@ -240,11 +286,7 @@
 		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/utils/radio-state-decode.hpp",
 		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/utils/radio-state-decode.cpp",
 		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/modules/CommModule/CommCtrl.cpp",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/drivers/cc1201/CC1201Config.hpp",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/modules/CommCtrl.cpp",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/modules/console/console-task.cpp",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/drivers/adc/adc-dma.cpp",
-		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/modules/system/system.cpp"
+		"/home/jonathan/Documents/robocup-software/firmware/robot2015/cpu/drivers/cc1201/CC1201Config.hpp"
 	],
 	"find":
 	{
@@ -266,6 +308,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"marker",
 			"msg",
 			"wss",
 			"form_x",
@@ -392,8 +435,7 @@
 			"executeIterativeCommand",
 			"iterativeCommandHandler",
 			"ping",
-			"pc",
-			"reset"
+			"pc"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -418,8 +460,96 @@
 	"groups":
 	[
 		{
+			"selected": 0,
 			"sheets":
 			[
+				{
+					"buffer": 0,
+					"file": "client/scripts.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5387,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3642,
+								3642
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1530.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "ws-srv/index.js",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2761,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								407,
+								407
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JavaScript.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "client/index.html",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 850,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								827,
+								827
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/HTML/HTML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				}
 			]
 		}
 	],

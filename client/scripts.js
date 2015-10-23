@@ -46,6 +46,10 @@ function encLoc(x, y) {
   return dims;
 }
 
+function clearTags() {
+
+}
+
 window.onload = function() {
   if (!window.WebSocket) {
     //If the user's browser does not support WebSockets, give an alert message
@@ -74,63 +78,62 @@ window.onload = function() {
 
     webSock.onmessage = function(event) {
       // parse the packet
-      msg = JSON.parse(event.data);
-      if (msg.realm == commRealm) {
-        // create an empty response message initially
-        var res = new Msg('', '', commRealm);
-        var replyNeeded = false;
-        console.log(msg);
+      try {
+        msg = JSON.parse(event.data);
+        if (msg.realm == commRealm) {
+          // create an empty response message initially
+          var res = new Msg('', '', commRealm);
+          var replyNeeded = false;
+          console.log(msg);
 
-        // handle the corresponding event
-        switch (msg.proto) {
-          case "submit_cords":
-            // var info = msg.data;
-            // // we copy the receive coordinate info so we can send it to everyone in our realm
-            // res.data = info;
-            // res.proto = 'add_user_cords';
-            console.log("Received submission: %dx%d (set %d).", info.cords.x, info.cords.y, info.set);
-            break;
+          // handle the corresponding event
+          switch (msg.proto) {
+            case "submit_cords":
+              // not used client-side
+              break;
 
-          case "add_user_cords":
-            var aTags = $('div.tags');
-            // if this is the first addition, create the div wrapper for others
-            if (!aTags.find('div').length) {
-              aTags.append('<div></div>');
-              aTags.find('div').addClass('atags');
-            }
+            case "add_user_cords":
+              var aTags = $('div.tags');
+              // if this is the first addition, create the div wrapper for others
+              if (!aTags.find('div').length) {
+                aTags.append('<div></div>');
+                aTags.find('div').addClass('atags');
+              }
 
-            // clone a placement marker
-            var rootTag = $('.marker:first');
-            rootTag.addClass('marker-user').clone().appendTo(aTags.find('div'));
-            rootTag.removeClass('marker-user');
+              // clone a placement marker
+              var rootTag = $('.marker:first');
+              rootTag.addClass('marker-user').clone().appendTo(aTags.find('div'));
+              rootTag.removeClass('marker-user');
 
-            // compute our local placement dimensions
-            var dims = decLoc(msg.data.cords.x, msg.data.cords.y);
-            // set the offset
-            $('.marker-user:last').offset({
-              top: dims.y,
-              left: dims.x
-            });
+              // compute our local placement dimensions
+              var dims = decLoc(msg.data.cords.x, msg.data.cords.y);
+              // set the offset
+              $('.marker-user:last').offset({
+                top: dims.y,
+                left: dims.x
+              });
+              console.log("Added coordinate to image.");
+              break;
 
-            console.log(dims);
-            console.log("Added coordinate to image.");
-            break;
+            case "renew_num_clients":
+              $('#num-users').text(msg.data);
+              console.log("Updating number of users");
+              break;
 
-          case "renew_num_clients":
+            default:
+              console.log("Received unknown protocol message:");
+              console.log(event.data);
+              break;
+          }
 
-            console.log("Updating number of users");
-            break;
-
-          default:
-            console.log("Received unknown protocol message.");
-            break;
+          if (replyNeeded) {
+            // send a reply if we need to by the protocol standards that we defined
+          }
         }
-
-        if (replyNeeded) {
-          // send a reply if we need to by the protocol standards that we defined
-        }
+        console.log(event.data);
+      } catch (err) {
+        console.log(err);
       }
-      console.log(event.data);
     };
 
     webSock.onclose = function(event) {
@@ -165,6 +168,13 @@ window.onload = function() {
         console.log("No coordinates set");
       }
     };
+
+    // bind the enter key for submission
+    $(document).keypress(function(e) {
+      if (e.which == 13) {
+        submitBtn.click();
+      }
+    });
 
   }
 }
