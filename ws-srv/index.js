@@ -32,7 +32,7 @@ ws.on("connection", function(id) {
 			msg = JSON.parse(data);
 			if (msg.realm == listeningRealm) {
 				// create an empty response message initially
-				var res = new Msg('', listeningRealm, '');
+				var res = new Msg('', '', listeningRealm);
 				var broadcastNeeded = false;
 
 				// handle the corresponding event
@@ -64,6 +64,7 @@ ws.on("connection", function(id) {
 
 				// broadcast out the message if needed
 				if (broadcastNeeded) {
+					console.log("Sending broadcast messages");
 					var myId = connList.indexOf(id);
 					for (var i = 0; i < connList.length; ++i) {
 						if (i != myId) {

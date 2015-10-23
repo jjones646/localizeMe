@@ -1,17 +1,51 @@
+var isFree = true;
+
 function pointIt(event) {
-  pos_x = event.offsetX ? (event.offsetX) : event.pageX - document.getElementById("pointer-div").offsetLeft;
-  pos_y = event.offsetY ? (event.offsetY) : event.pageY - document.getElementById("pointer-div").offsetTop;
-  var mrkElem = document.getElementById("marker");
-  var offsetVal = mrkElem.offsetWidth / 2;
-  mrkElem = mrkElem.style;
-  mrkElem.left = (pos_x - offsetVal);
-  mrkElem.top = (pos_y - offsetVal);
-  mrkElem.visibility = "visible";
-  document.pointform.form_x.value = pos_x;
-  document.pointform.form_y.value = pos_y;
+  if (isFree) {
+    var offsetPtr = $('#pointer-div').offset();
+    var pos_x = event.offsetX ? (event.offsetX + offsetPtr.left) : event.pageX - offsetPtr.left;
+    var pos_y = event.offsetY ? (event.offsetY + offsetPtr.top) : event.pageY - offsetPtr.top;
+    var mrkElem = $('.marker:first');
+    var offsetVal = mrkElem.width() / 2;
+    mrkElem.offset({
+      top: (pos_y - offsetVal),
+      left: (pos_x - offsetVal)
+    });
+    mrkElem.css("visibility", "");
+    $('#form_x').val(pos_x);
+    $('#form_y').val(pos_y);
+  }
 }
 
-// if (document.readyState === "complete") {
+// Convert the normalized coordinates for the user's current display settings
+// normalized units are assumed to be in the range from 0 to 1000.
+function decLoc(x, y) {
+  var myW = $('#pointer-div').width();
+  var myH = $('#pointer-div').height();
+  var dims = {
+    x: "",
+    y: ""
+  };
+
+  dims.x = Math.round((x * myW) / 1000);
+  dims.y = Math.round((y * myH) / 1000);
+  return dims;
+}
+
+// encode the location before sending it over the websocket connection
+function encLoc(x, y) {
+  var myW = $('#pointer-div').width();
+  var myH = $('#pointer-div').height();
+  var dims = {
+    x: "",
+    y: ""
+  };
+
+  dims.x = Math.round((x / myW) * 1000);
+  dims.y = Math.round((y / myH) * 1000);
+  return dims;
+}
+
 window.onload = function() {
   if (!window.WebSocket) {
     //If the user's browser does not support WebSockets, give an alert message
@@ -40,35 +74,54 @@ window.onload = function() {
 
     webSock.onmessage = function(event) {
       // parse the packet
-      msg = JSON.parse(data);
-      if (msg.realm == listeningRealm) {
+      msg = JSON.parse(event.data);
+      if (msg.realm == commRealm) {
         // create an empty response message initially
-        var res = new Msg('', listeningRealm, '');
+        var res = new Msg('', '', commRealm);
         var replyNeeded = false;
+        console.log(msg);
 
         // handle the corresponding event
         switch (msg.proto) {
           case "submit_cords":
-            var info = msg.data;
-            // we copy the receive coordinate info so we can send it to everyone in our realm
-            res.data = info;
-            res.proto = 'add_user_cords';
-            replyNeeded = false;
+            // var info = msg.data;
+            // // we copy the receive coordinate info so we can send it to everyone in our realm
+            // res.data = info;
+            // res.proto = 'add_user_cords';
             console.log("Received submission: %dx%d (set %d).", info.cords.x, info.cords.y, info.set);
             break;
 
           case "add_user_cords":
-            replyNeeded = false;
-            console.log("Sending new point to connected users.");
+            var aTags = $('div.tags');
+            // if this is the first addition, create the div wrapper for others
+            if (!aTags.find('div').length) {
+              aTags.append('<div></div>');
+              aTags.find('div').addClass('atags');
+            }
+
+            // clone a placement marker
+            var rootTag = $('.marker:first');
+            rootTag.addClass('marker-user').clone().appendTo(aTags.find('div'));
+            rootTag.removeClass('marker-user');
+
+            // compute our local placement dimensions
+            var dims = decLoc(msg.data.cords.x, msg.data.cords.y);
+            // set the offset
+            $('.marker-user:last').offset({
+              top: dims.y,
+              left: dims.x
+            });
+
+            console.log(dims);
+            console.log("Added coordinate to image.");
             break;
 
           case "renew_num_clients":
-            replyNeeded = false;
-            console.log("Received invalid packet destined for clients.");
+
+            console.log("Updating number of users");
             break;
 
           default:
-            replyNeeded = false;
             console.log("Received unknown protocol message.");
             break;
         }
@@ -93,19 +146,18 @@ window.onload = function() {
       if (cord_x != null && cord_y != null) {
         // check to see if the websocket object exists
         if (webSock) {
+          // encode the dimensions for global normalization
+          var dims = encLoc(cord_x, cord_y);
           // create our data object to send
           var data = {
-            cords: {
-              x: cord_x,
-              y: cord_y
-            },
+            cords: dims,
             set: image_set
           };
           // construct a message object, placing the data as the payload
           var msg = new Msg('submit_cords', data, commRealm);
           // Send the msg object as a JSON-formatted string.
           webSock.send(JSON.stringify(msg));
-          // console.log(msg);
+          // isFree = false;
         } else {
           console.log("No socket connection");
         }
