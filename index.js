@@ -84,7 +84,7 @@ ws.on("connection", function(id) {
 
 					default:
 						console.log("Received unknown protocol message.");
-						console.log(err);
+						console.log(data);
 						break;
 				}
 
