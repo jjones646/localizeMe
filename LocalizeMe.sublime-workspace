@@ -80,7 +80,10 @@
 	"buffers":
 	[
 		{
+			"contents": "var isFree = true;\n\nfunction pointIt(event) {\n  if (isFree) {\n    var offsetPtr = $('#pointer-div').offset();\n    var pos_x = event.offsetX ? (event.offsetX + offsetPtr.left) : event.pageX - offsetPtr.left;\n    var pos_y = event.offsetY ? (event.offsetY + offsetPtr.top) : event.pageY - offsetPtr.top;\n    var mrkElem = $('.marker:first');\n    var offsetVal = mrkElem.width() / 2;\n    mrkElem.offset({\n      top: (pos_y - offsetVal),\n      left: (pos_x - offsetVal)\n    });\n    mrkElem.css(\"visibility\", \"\");\n    $('#form_x').val(pos_x);\n    $('#form_y').val(pos_y);\n  }\n}\n\n// Convert the normalized coordinates for the user's current display settings\n// normalized units are assumed to be in the range from 0 to 1000.\nfunction decLoc(x, y) {\n  var myW = $('#pointer-div').width();\n  var myH = $('#pointer-div').height();\n  var dims = {\n    x: \"\",\n    y: \"\"\n  };\n\n  dims.x = Math.round((x * myW) / 1000);\n  dims.y = Math.round((y * myH) / 1000);\n  return dims;\n}\n\n// encode the location before sending it over the websocket connection\nfunction encLoc(x, y) {\n  var myW = $('#pointer-div').width();\n  var myH = $('#pointer-div').height();\n  var dims = {\n    x: \"\",\n    y: \"\"\n  };\n\n  dims.x = Math.round((x / myW) * 1000);\n  dims.y = Math.round((y / myH) * 1000);\n  return dims;\n}\n\nfunction clearTags() {\n\n}\n\nwindow.onload = function() {\n  if (!window.WebSocket) {\n    //If the user's browser does not support WebSockets, give an alert message\n    alert(\"Your browser does not support the WebSocket API!\");\n  } else {\n\n    // setup the websocket connection\n    var wsurl = \"ws://localhost:5000\";\n    //get status element\n    var connstatus = document.getElementById(\"connectionstatus\");\n    var submitBtn = document.getElementById('submit-btn');\n    // the default realm for our protocol\n    var commRealm = 'robotics';\n    // create the websocket object\n    var webSock = new WebSocket(wsurl, [\"protocolOne\", \"protocolTwo\"]);\n\n    // Handle any errors that occur.\n    webSock.onerror = function(error) {\n      console.log('WebSocket Error: ' + error);\n    };\n\n    webSock.onopen = function(event) {\n      // do stuff when the connection opens\n      console.log(event);\n    };\n\n    webSock.onmessage = function(event) {\n      // parse the packet\n      try {\n        msg = JSON.parse(event.data);\n        if (msg.realm == commRealm) {\n          // create an empty response message initially\n          var res = new Msg('', '', commRealm);\n          var replyNeeded = false;\n          console.log(msg);\n\n          // handle the corresponding event\n          switch (msg.proto) {\n            case \"submit_cords\":\n              // not used client-side\n              break;\n\n            case \"add_user_cords\":\n              var aTags = $('div.tags');\n              // if this is the first addition, create the div wrapper for others\n              if (!aTags.find('div').length) {\n                aTags.append('<div></div>');\n                aTags.find('div').addClass('atags');\n              }\n\n              // clone a placement marker\n              var rootTag = $('.marker:first');\n              rootTag.addClass('marker-user').clone().appendTo(aTags.find('div'));\n              rootTag.removeClass('marker-user');\n\n              // compute our local placement dimensions\n              var dims = decLoc(msg.data.cords.x, msg.data.cords.y);\n              // set the offset\n              $('.marker-user:last').offset({\n                top: dims.y,\n                left: dims.x\n              });\n              console.log(\"Added coordinate to image.\");\n              break;\n\n            case \"renew_num_clients\":\n              $('#num-users').text(msg.data);\n              console.log(\"Updating number of users\");\n              break;\n\n            default:\n              console.log(\"Received unknown protocol message:\");\n              console.log(event.data);\n              break;\n          }\n\n          if (replyNeeded) {\n            // send a reply if we need to by the protocol standards that we defined\n          }\n        }\n        console.log(event.data);\n      } catch (err) {\n        console.log(err);\n      }\n    };\n\n    webSock.onclose = function(event) {\n      // do stuff when the connection closes\n    };\n\n    submitBtn.onclick = function(e) {\n      var cord_x = document.getElementById(\"form_x\").value;\n      var cord_y = document.getElementById(\"form_y\").value;\n      var image_set = 1;\n\n      // make sure we have valid coordinates to send\n      if (cord_x != null && cord_y != null) {\n        // check to see if the websocket object exists\n        if (webSock) {\n          // encode the dimensions for global normalization\n          var dims = encLoc(cord_x, cord_y);\n          // create our data object to send\n          var data = {\n            cords: dims,\n            set: image_set\n          };\n          // construct a message object, placing the data as the payload\n          var msg = new Msg('submit_cords', data, commRealm);\n          // Send the msg object as a JSON-formatted string.\n          webSock.send(JSON.stringify(msg));\n          // isFree = false;\n        } else {\n          console.log(\"No socket connection\");\n        }\n      } else {\n        console.log(\"No coordinates set\");\n      }\n    };\n\n    // bind the enter key for submission\n    $(document).keypress(function(e) {\n      if (e.which == 13) {\n        submitBtn.click();\n      }\n    });\n\n  }\n}",
 			"file": "client/scripts.js",
+			"file_size": 5387,
+			"file_write_time": 130900645475611051,
 			"settings":
 			{
 				"buffer_size": 5387,
@@ -88,7 +91,27 @@
 			}
 		},
 		{
+			"file": "package.json",
+			"settings":
+			{
+				"buffer_size": 403,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "processes.json",
+			"settings":
+			{
+				"buffer_size": 193,
+				"line_ending": "Unix",
+				"name": "{"
+			}
+		},
+		{
+			"contents": "var WebSocketServer = require(\"ws\").Server;\nvar http = require(\"http\");\nvar express = require(\"express\");\nvar app = express();\nvar port = process.env.PORT || 5000;\nvar Msg = require('./msg.js');\n\napp.use(express.static(__dirname + \"/\"));\nvar server = http.createServer(app);\n\nserver.listen(port);\nvar ws = new WebSocketServer({\n	server: server\n});\nconsole.log(\"WebSocket server running on port %d.\", port);\n\nvar listeningRealm = 'robotics';\n\nvar testMsg = new Msg('renew_num_clients', listeningRealm, '3');\nconsole.log(testMsg.prep());\n\nvar connList = [];\n// a new connection gets forwared here\nws.on(\"connection\", function(id) {\n	// add connection object to array of all connections\n	connList.push(id);\n	console.log(\"User with ID of \" + id + \" has connected [%d current connections].\", connList.length);\n\n	var clientUpd = new Msg('renew_num_clients', connList.length, listeningRealm);\n	for (var i = 0; i < connList.length; ++i) {\n		id.send(clientUpd.prep(), function() {});\n	}\n\n	// broadcast to all\n	id.on(\"message\", function(data, flags) {\n		try {\n			msg = JSON.parse(data);\n			if (msg.realm == listeningRealm) {\n				// create an empty response message initially\n				var res = new Msg('', '', listeningRealm);\n				var broadcastNeeded = false;\n\n				// handle the corresponding event\n				switch (msg.proto) {\n					case \"submit_cords\":\n						var info = msg.data;\n						// we copy the receive coordinate info so we can send it to everyone in our realm\n						res.data = info;\n						res.proto = 'add_user_cords';\n						broadcastNeeded = true;\n						console.log(\"Received submission: %dx%d (set %d).\", info.cords.x, info.cords.y, info.set);\n						break;\n\n					case \"add_user_cords\":\n						broadcastNeeded = true;\n						console.log(\"Sending new point to connected users.\");\n						break;\n\n					case \"renew_num_clients\":\n\n						console.log(\"Received invalid packet destined for clients.\");\n						break;\n\n					default:\n						console.log(\"Received unknown protocol message.\");\n						console.log(err);\n						break;\n				}\n\n				// broadcast out the message if needed\n				if (broadcastNeeded) {\n					console.log(\"Sending broadcast messages\");\n					var myId = connList.indexOf(id);\n					for (var i = 0; i < connList.length; ++i) {\n						if (i != myId) {\n							connList[i].send(res.prep(), function ack(err) {\n								if (typeof err !== 'undefined') {\n									// something went wrong\n									console.log(\"ERROR SENDING BROADCAST MESSAGE TO:\\n\" + connList[i]);\n								}\n							});\n						}\n					}\n				}\n			}\n		} catch (err) {\n			console.log(err);\n		}\n	});\n\n	id.on(\"close\", function(idk) {\n		connList.splice(connList.indexOf(id), 1);\n		console.log(\"User with ID of \" + id + \" has disconnected.\");\n	});\n});\n\n// errors are forwarded into here\nws.on(\"error\", function(err) {\n\n});",
 			"file": "ws-srv/index.js",
+			"file_size": 2761,
+			"file_write_time": 130900643927251083,
 			"settings":
 			{
 				"buffer_size": 2761,
@@ -96,7 +119,10 @@
 			}
 		},
 		{
+			"contents": "<html>\n<head>\n<script src=\"https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js\"></script>\n<script src=\"scripts.js\"></script>\n<script src=\"../ws-srv/msg.js\"></script>\n<style>\n#pointer-div {\n    background-image: url(\"gt-aerial-crop.jpg\");\n    background-size: contain;\n    background-repeat: no-repeat;\n    max-width: 3188px;\n    max-height: 2072px;\n    height: 1000px;\n}\n</style>\n</head>\n<body>\n<form name=\"pointform\" method=\"post\">\n<div id=\"pointer-div\" onclick=\"pointIt(event)\">\n<div class=\"tags\">\n<img src=\"marker.png\" class=\"marker\" style=\"position:relative;visibility:hidden;z-index:2;\">\n</div>\n</div>\nCurrent Point:<br>x = <input type=\"text\" id=\"form_x\" size=\"4\" /></br>y = <input type=\"text\" id=\"form_y\" size=\"4\" /></br>\n<input type=\"button\" id=\"submit-btn\" value=\"Submit\" />\n</form>\n<div id=\"num-users\">\n1\n</div>\n</body>\n</html>",
 			"file": "client/index.html",
+			"file_size": 850,
+			"file_write_time": 130900643939331083,
 			"settings":
 			{
 				"buffer_size": 850,
@@ -154,8 +180,7 @@
 	},
 	"expanded_folders":
 	[
-		"/home/jonathan/Documents/LocalizeMe",
-		"/home/jonathan/Documents/LocalizeMe/ws-srv"
+		"/home/jonathan/Documents/localizeMe"
 	],
 	"file_history":
 	[
@@ -308,6 +333,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"}\n",
 			"marker",
 			"msg",
 			"wss",
@@ -434,8 +460,7 @@
 			"iter",
 			"executeIterativeCommand",
 			"iterativeCommandHandler",
-			"ping",
-			"pc"
+			"ping"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -460,7 +485,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 2,
 			"sheets":
 			[
 				{
@@ -487,14 +512,75 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1530.0,
+						"translation.y": 2448.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "package.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 403,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								91,
+								91
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "processes.json",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 193,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								123,
+								123
+							]
+						],
+						"settings":
+						{
+							"auto_name": "{",
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 1,
+					"buffer": 3,
 					"file": "ws-srv/index.js",
 					"semi_transient": false,
 					"settings":
@@ -519,11 +605,11 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 3,
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 4,
 					"file": "client/index.html",
 					"semi_transient": false,
 					"settings":
@@ -547,7 +633,7 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 4,
 					"type": "text"
 				}
 			]
