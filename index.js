@@ -61,6 +61,23 @@ ws.on("connection", function(id) {
 						console.log("Received invalid packet destined for clients.");
 						break;
 
+					case "_get_ground_truth":
+						res.proto = 'ground_truth';
+						// res.data = ...
+						console.log("Sending ground truth to clients.");
+						break;
+
+					case "clear_points":
+						broadcastNeeded = true;
+						res.proto = "clear_points";
+						// id.send(res.prep(), function() {});
+						console.log("Clearing screens.");
+						break;
+
+					case "request_current_points":
+						console.log("Sending current points to client.");
+						break;
+
 					default:
 						console.log("Received unknown protocol message.");
 						console.log(err);
