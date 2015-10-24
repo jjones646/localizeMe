@@ -16,8 +16,9 @@ console.log("WebSocket server running on port %d.", port);
 
 var listeningRealm = 'robotics';
 
-var testMsg = new Msg('renew_num_clients', listeningRealm, '3');
-console.log(testMsg.prep());
+// var testMsg = new Msg('renew_num_clients', listeningRealm, '3');
+// console.log(testMsg.prep());
+var currentSet = 1;
 
 var connList = [];
 // a new connection gets forwared here
@@ -57,14 +58,17 @@ ws.on("connection", function(id) {
 						break;
 
 					case "renew_num_clients":
-
 						console.log("Received invalid packet destined for clients.");
 						break;
 
-					case "_get_ground_truth":
+					case "get_ground_truth":
 						res.proto = 'ground_truth';
 						// res.data = ...
 						console.log("Sending ground truth to clients.");
+						break;
+
+					case "current_image_set":
+						currentSet;
 						break;
 
 					case "clear_points":
