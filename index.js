@@ -16,7 +16,7 @@ console.log("WebSocket server running on port %d.", port);
 
 var listeningRealm = 'robotics';
 var currentSet = 0;
-
+var pointList = [];
 var connList = [];
 // a new connection gets forwared here
 ws.on("connection", function(id) {
@@ -46,7 +46,8 @@ ws.on("connection", function(id) {
 						// we copy the receive coordinate info so we can send it to everyone in our realm
 						res.data = info;
 						res.proto = 'add_user_cords';
-						broadcastNeeded = true;
+						pointList.push(res);
+						// broadcastNeeded = true;
 						console.log("Received submission: %dx%d (set %d).", info.cords.x, info.cords.y, info.set);
 						break;
 
@@ -73,7 +74,12 @@ ws.on("connection", function(id) {
 						resetUs = true;
 						break;
 
-					case "request_current_points":
+					case "send_out_points":
+						for (var i = 0; i < connList.length; ++i) {
+							for (var j = 0; i < pointList.length; ++j) {
+								connList[i].send(pointList[j].prep(), function() {});
+							}
+						}
 						console.log("Sending current points to client.");
 						break;
 
