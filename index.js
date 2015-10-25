@@ -81,6 +81,7 @@ ws.on("connection", function(id) {
 								connList[i].send(pointList[j].prep(), function() {});
 							}
 						}
+						broadcastNeeded = true;
 						console.log("Sending current points to client.");
 						break;
 
