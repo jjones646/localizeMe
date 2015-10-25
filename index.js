@@ -77,11 +77,17 @@ ws.on("connection", function(id) {
 
 					case "send_out_points":
 						for (var i = 0; i < connList.length; ++i) {
-							for (var j = 0; i < pointList.length; ++j) {
-								connList[i].send(pointList[j].prep(), function() {});
+							for (var j = 0; j < pointList.length; ++j) {
+								var message = pointList[j];
+								connList[i].send(message.prep(), function ack(err) {
+									if (typeof err !== 'undefined') {
+										// something went wrong
+										console.log("ERROR SENDING BROADCAST MESSAGE TO:\n" + connList[i]);
+									}
+								});
 							}
 						}
-						broadcastNeeded = true;
+						//broadcastNeeded = true;
 						console.log("Sending current points to client.");
 						break;
 
