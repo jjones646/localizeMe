@@ -15,9 +15,6 @@ var ws = new WebSocketServer({
 console.log("WebSocket server running on port %d.", port);
 
 var listeningRealm = 'robotics';
-
-// var testMsg = new Msg('renew_num_clients', listeningRealm, '3');
-// console.log(testMsg.prep());
 var currentSet = 1;
 
 var connList = [];
@@ -29,7 +26,7 @@ ws.on("connection", function(id) {
 
 	var clientUpd = new Msg('renew_num_clients', connList.length, listeningRealm);
 	for (var i = 0; i < connList.length; ++i) {
-		id.send(clientUpd.prep(), function() {});
+		connList[i].send(clientUpd.prep(), function() {});
 	}
 
 	// broadcast to all
@@ -61,7 +58,7 @@ ws.on("connection", function(id) {
 						console.log("Received invalid packet destined for clients.");
 						break;
 
-					case "get_ground_truth":
+					case "ground_truth":
 						res.proto = 'ground_truth';
 						// res.data = ...
 						console.log("Sending ground truth to clients.");
@@ -69,13 +66,6 @@ ws.on("connection", function(id) {
 
 					case "current_image_set":
 						currentSet;
-						break;
-
-					case "clear_points":
-						broadcastNeeded = true;
-						res.proto = "clear_points";
-						// id.send(res.prep(), function() {});
-						console.log("Clearing screens.");
 						break;
 
 					case "request_current_points":
