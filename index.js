@@ -15,7 +15,7 @@ var ws = new WebSocketServer({
 console.log("WebSocket server running on port %d.", port);
 
 var listeningRealm = 'robotics';
-var currentSet = 1;
+var currentSet = 0;
 
 var connList = [];
 // a new connection gets forwared here
@@ -37,6 +37,7 @@ ws.on("connection", function(id) {
 				// create an empty response message initially
 				var res = new Msg('', '', listeningRealm);
 				var broadcastNeeded = false;
+				var resetUs = false;
 
 				// handle the corresponding event
 				switch (msg.proto) {
@@ -64,8 +65,12 @@ ws.on("connection", function(id) {
 						console.log("Sending ground truth to clients.");
 						break;
 
-					case "current_image_set":
-						currentSet;
+					case "request_next_set":
+						currentSet = msg.data;
+						res.data = msg.data;
+						res.proto = 'reset_set';
+						broadcastNeeded = true;
+						resetUs = true;
 						break;
 
 					case "request_current_points":
@@ -83,7 +88,7 @@ ws.on("connection", function(id) {
 					console.log("Sending broadcast messages");
 					var myId = connList.indexOf(id);
 					for (var i = 0; i < connList.length; ++i) {
-						if (i != myId) {
+						if (i != myId || resetUs == true) {
 							connList[i].send(res.prep(), function ack(err) {
 								if (typeof err !== 'undefined') {
 									// something went wrong
