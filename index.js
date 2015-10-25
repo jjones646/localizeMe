@@ -72,6 +72,7 @@ ws.on("connection", function(id) {
 						res.proto = 'reset_set';
 						broadcastNeeded = true;
 						resetUs = true;
+						pointList = [];
 						break;
 
 					case "send_out_points":
